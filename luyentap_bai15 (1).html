@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第15课 教育孩子的艺术 — 練習demo</title>
+<style>
+  :root{
+    --ink:#2c342f;
+    --paper:#f4f1e6;
+    --paper-2:#ffffff;
+    --pine:#33513f;
+    --pine-dark:#22362a;
+    --mustard:#d69a3e;
+    --coral:#c4644c;
+    --coral-dark:#7c3c2b;
+    --sage:#8fa98c;
+    --line:#d8d1bd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Serif SC","Songti SC",serif;
+    line-height:1.7;
+    padding:0 0 60px;
+  }
+  header{
+    background:var(--pine-dark);
+    color:#f4f1e6;
+    padding:32px 24px 24px;
+    text-align:center;
+    border-bottom:6px solid var(--mustard);
+  }
+  header h1{font-size:22px;font-weight:500;margin:0 0 6px;letter-spacing:1px;}
+  header p{margin:0;font-size:13px;color:#c9d6ca;font-family:"Helvetica Neue",Arial,sans-serif;}
+  .tabs{
+    display:flex;flex-wrap:wrap;gap:0;max-width:760px;margin:0 auto;
+    position:sticky;top:0;background:var(--paper);z-index:10;
+    border-bottom:1px solid var(--line);
+  }
+  .tab{
+    flex:1;min-width:120px;padding:12px 8px;text-align:center;font-size:13px;
+    font-family:"Helvetica Neue",Arial,sans-serif;cursor:pointer;
+    background:var(--paper-2);border:1px solid var(--line);border-bottom:none;
+    color:#6b675a;user-select:none;
+  }
+  .tab.active{
+    background:var(--paper);color:var(--pine-dark);font-weight:700;
+    border-top:3px solid var(--mustard);
+  }
+  main{max-width:760px;margin:0 auto;padding:28px 20px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .panel-label{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;
+    letter-spacing:2px;text-transform:uppercase;color:var(--coral-dark);margin-bottom:4px;
+  }
+  h2{font-size:19px;margin:0 0 18px;color:var(--pine-dark);}
+  .card{
+    background:var(--paper-2);border:1px solid var(--line);
+    border-radius:6px;padding:18px 20px;margin-bottom:16px;
+  }
+  .scenario{font-size:15px;margin-bottom:12px;}
+  .opt{
+    display:block;width:100%;text-align:left;background:var(--paper);
+    border:1px solid var(--line);border-radius:5px;padding:10px 14px;margin-bottom:8px;
+    font-family:inherit;font-size:14px;cursor:pointer;color:var(--ink);
+  }
+  .opt:hover{border-color:var(--sage);}
+  .opt.correct{background:#e4ecdf;border-color:var(--pine);color:var(--pine-dark);font-weight:700;}
+  .opt.wrong{background:#f4e2dc;border-color:var(--coral);color:var(--coral-dark);text-decoration:line-through;}
+  .fb{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;margin-top:8px;
+    color:var(--pine-dark);display:none;
+  }
+  .dialogue-line{
+    font-size:15px;padding:8px 12px;border-radius:4px;cursor:pointer;
+    margin-bottom:2px;border:1px dashed transparent;
+  }
+  .dialogue-line:hover{border-color:var(--sage);}
+  .dialogue-line.flagged{background:#f4e2dc;border-color:var(--coral);}
+  .dialogue-line .fix{
+    display:none;font-family:"Helvetica Neue",Arial,sans-serif;font-size:13px;
+    color:var(--pine-dark);margin-top:6px;
+  }
+  .dialogue-line.flagged .fix{display:block;}
+  .fillblank-script{font-size:15px;}
+  select.blank{
+    font-family:inherit;font-size:14px;border:none;border-bottom:2px solid var(--mustard);
+    background:transparent;color:var(--pine-dark);padding:2px 4px;
+  }
+  select.blank.right{border-bottom-color:var(--pine);}
+  select.blank.wrong{border-bottom-color:var(--coral);}
+  table.match{width:100%;border-collapse:collapse;font-size:14px;}
+  table.match td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.match td.trait{font-weight:700;color:var(--coral-dark);width:35%;}
+  select.method{
+    width:100%;font-family:inherit;font-size:13px;padding:6px 8px;
+    border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);
+  }
+  select.method.right{border-color:var(--pine);background:#e4ecdf;}
+  select.method.wrong{border-color:var(--coral);background:#f4e2dc;}
+  .flash-row{display:flex;gap:16px;flex-wrap:wrap;}
+  .flashcard{flex:1;min-width:220px;height:150px;perspective:1000px;cursor:pointer;}
+  .flash-inner{
+    position:relative;width:100%;height:100%;transition:transform .5s;
+    transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flash-inner{transform:rotateY(180deg);}
+  .flash-face{
+    position:absolute;inset:0;backface-visibility:hidden;border-radius:6px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:14px;border:1px solid var(--line);
+  }
+  .flash-front{background:var(--paper-2);font-size:13.5px;color:var(--ink);}
+  .flash-back{background:var(--pine-dark);color:#f4f1e6;transform:rotateY(180deg);}
+  .flash-back .word{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .flash-back .pinyin{font-size:13px;color:var(--mustard);font-family:"Helvetica Neue",Arial,sans-serif;margin-bottom:6px;}
+  .flash-back .ex{font-size:12.5px;color:#c9d6ca;}
+  .hint{
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;color:#8a8672;
+    margin-top:-8px;margin-bottom:16px;
+  }
+  .scenario-img{
+    width:100%;
+    max-height:220px;
+    object-fit:cover;
+    border-radius:6px;
+    margin-bottom:12px;
+    display:block;
+    background:var(--paper);
+    border:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>第15课 · 教育孩子的艺术</h1>
+  <p>课堂练习 demo — 使用前请先完成生词预习</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-panel="p1">1 · 情境判断</div>
+  <div class="tab" data-panel="p2">2 · 找错误</div>
+  <div class="tab" data-panel="p3">3 · 填空角色扮演</div>
+  <div class="tab" data-panel="p4">4 · 性格配对</div>
+  <div class="tab" data-panel="p6">6 · 情境闪卡</div>
+</div>
+
+<main>
+
+  <section class="panel active" id="p1">
+    <div class="panel-label">活动 1</div>
+    <h2>"教育小医生" — 情境判断</h2>
+    <div class="hint">读情境，选出符合课文建议的做法</div>
+    <div class="hint">
+      图片檔名請放在跟 <code>index.html</code> 同一層資料夾（不需要 <code>images/</code> 子資料夾），
+      依序命名為 <code>scenario1.jpg</code> ～ <code>scenario6.jpg</code>（對應下面六個情境的順序）。
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario1.jpg" alt="孩子生气地扔玩具" onerror="this.style.display='none'">
+      <div class="scenario">情境①：孩子因为得不到自己想要的玩具，故意把东西扔在地上。你应该——</div>
+      <button class="opt" data-correct="false">马上生气地批评他，让他立刻停止</button>
+      <button class="opt" data-correct="true">先不生气，停下手中的事，陪他整理东西，弄清楚他的问题</button>
+      <button class="opt" data-correct="false">骗他说"明天就带你去买"，先让他安静下来</button>
+      <div class="fb"></div>
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario2.jpg" alt="害羞的学生不敢举手发言" onerror="this.style.display='none'">
+      <div class="scenario">情境②：一个学生性格比较害羞，上课从不主动发言。老师应该——</div>
+      <button class="opt" data-correct="false">不勉强他，随他去，等他自己想说的时候再说</button>
+      <button class="opt" data-correct="true">经常鼓励他说出自己的看法，帮他慢慢开口</button>
+      <button class="opt" data-correct="false">当着全班的面点名让他回答，逼他练胆</button>
+      <div class="fb"></div>
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario3.jpg" alt="学生写错题很沮丧" onerror="this.style.display='none'">
+      <div class="scenario">情境③：学生写错了很简单的题目，一直不敢再写。老师应该——</div>
+      <button class="opt" data-correct="false">说"这么简单都不会，你怎么这么笨"，让他知道要认真</button>
+      <button class="opt" data-correct="true">说"没关系，我们再看一次，你上次进步很大"，多鼓励他</button>
+      <button class="opt" data-correct="false">不理他，让他自己想办法</button>
+      <div class="fb"></div>
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario4.jpg" alt="七岁左右的孩子上课坐不住" onerror="this.style.display='none'">
+      <div class="scenario">情境④：班上有几个七岁左右的孩子上课总是坐不住、很好动。老师应该——</div>
+      <button class="opt" data-correct="false">一直提醒他们坐好，坐不住就罚站</button>
+      <button class="opt" data-correct="true">想办法引起他们的兴趣，让他们觉得内容有趣</button>
+      <button class="opt" data-correct="false">让好动的孩子自己坐在教室后面，不用管他们</button>
+      <div class="fb"></div>
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario5.jpg" alt="孩子表情骄傲得意" onerror="this.style.display='none'">
+      <div class="scenario">情境⑤：孩子成绩很好，开始觉得自己什么都懂，看不起同学。父母应该——</div>
+      <button class="opt" data-correct="false">继续多夸他，让他更有自信</button>
+      <button class="opt" data-correct="true">让他明白还有很多知识需要学习，帮他保持谦虚</button>
+      <button class="opt" data-correct="false">在同学面前批评他骄傲，让他不好意思</button>
+      <div class="fb"></div>
+    </div>
+
+    <div class="card">
+      <img class="scenario-img" src="scenario6.jpg" alt="父母安慰考试没考好的孩子" onerror="this.style.display='none'">
+      <div class="scenario">情境⑥：孩子考试没考好，很难过。父母其实也很失望，但对孩子说"没关系，我们一点都不在意"。这样做——</div>
+      <button class="opt" data-correct="false">很好，因为可以让孩子马上安心下来</button>
+      <button class="opt" data-correct="true">不太好，因为这是骗孩子，最好不要用说谎的方式解决问题</button>
+      <button class="opt" data-correct="false">没有关系，反正孩子不会发现</button>
+      <div class="fb"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p2">
+    <div class="panel-label">活动 2</div>
+    <h2>"哪里错了？" — 找出不合适的教育方式</h2>
+    <div class="hint">点击你认为不符合课文建议的句子，会出现说明</div>
+
+    <div class="card">
+      <div class="dialogue-line" data-fix="课文说：教育孩子最好不要为了解决问题而骗孩子，因为儿童缺少判断能力，看到父母骗人，他们也会学着说假话。">
+        妈妈：宝宝乖，不要哭了，妈妈明天就给你买新玩具。<span class="fix">→ 不合适：这是"骗孩子"，课文提醒最好不要用说谎的方式解决问题。</span>
+      </div>
+      <div class="dialogue-line" data-fix="课文说：应该停下手中的事情，陪孩子整理整理东西，和他们聊聊天儿，弄清楚他们的问题。">
+        妈妈：好，那我们先把这些玩具整理一下，你跟我说说，刚才怎么了？<span class="fix">→ 符合课文建议：陪孩子整理东西、聊天、弄清楚问题。</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="dialogue-line" data-fix="课文说：不要用'懒''笨''粗心'这种词批评他，这样对他们的正常发展不好。">
+        老师：这么简单的题你都不会，你怎么这么笨！<span class="fix">→ 不合适：课文明确提到不要用"笨"这种词批评孩子。</span>
+      </div>
+      <div class="dialogue-line" data-fix="课文说：当孩子不明白时，应该多鼓励他。">
+        老师：没关系，我们再看一遍，你上次进步很大，这次也一定可以。<span class="fix">→ 符合课文建议：多鼓励，而不是批评。</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="dialogue-line" data-fix="课文说：对不同性格的孩子要使用不同的教育方法。">
+        老师：我教全班学生都用同一种方法，没有例外，方便省事。<span class="fix">→ 不合适：课文说对不同性格的孩子要使用不同的教育方法，不能一套方法用到底。</span>
+      </div>
+      <div class="dialogue-line" data-fix="课文说：如果孩子比较骄傲，应该让他明白还有很多知识需要学习；要是孩子性格有些害羞，就要经常鼓励他说出自己的看法。">
+        老师：小华比较骄傲，我常提醒他还有很多要学；小美比较害羞，我常鼓励她说出自己的想法。<span class="fix">→ 符合课文建议：针对不同性格用不同方法，因材施教。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p3">
+    <div class="panel-label">活动 3</div>
+    <h2>角色扮演填空 — 老师与害羞的学生</h2>
+    <div class="hint">从下拉菜单选出最合适的词，完成对话后练习朗读</div>
+
+    <div class="card fillblank-script">
+      老师：小玉，你上课的时候好像有点
+      <select class="blank" data-answer="害羞">
+        <option value="">（选词）</option>
+        <option value="害羞">害羞</option>
+        <option value="骄傲">骄傲</option>
+        <option value="粗心">粗心</option>
+      </select>
+      ，是不是不好意思在同学面前说话？<br><br>
+      小玉：对，我怕自己说错，大家会笑我。<br><br>
+      老师：没关系，说错也没关系，老师会
+      <select class="blank" data-answer="鼓励">
+        <option value="">（选词）</option>
+        <option value="鼓励">鼓励</option>
+        <option value="批评">批评</option>
+        <option value="故意">故意</option>
+      </select>
+      你说出自己的看法，慢慢你就会觉得
+      <select class="blank" data-answer="合适">
+        <option value="">（选词）</option>
+        <option value="合适">合适</option>
+        <option value="敲">敲</option>
+        <option value="整理">整理</option>
+      </select>
+      的方法其实没有那么难。
+      <div class="fb" style="display:block;margin-top:12px;">选对会变绿色，选错会变红色</div>
+    </div>
+
+    <div class="card fillblank-script">
+      妈妈：宝宝，你怎么把玩具都扔在地上了，是不是
+      <select class="blank" data-answer="故意">
+        <option value="">（选词）</option>
+        <option value="故意">故意</option>
+        <option value="害羞">害羞</option>
+        <option value="骄傲">骄傲</option>
+      </select>
+      弄坏的？<br><br>
+      孩子：因为你没有给我买新的玩具……<br><br>
+      妈妈：好，那我们先一起把玩具
+      <select class="blank" data-answer="整理">
+        <option value="">（选词）</option>
+        <option value="整理">整理</option>
+        <option value="敲">敲</option>
+        <option value="骗">骗</option>
+      </select>
+      一下，好吗？你跟我说说你想要什么。<br><br>
+      （旁白）妈妈决定不用说谎的方法，因为骗孩子不是
+      <select class="blank" data-answer="合适">
+        <option value="">（选词）</option>
+        <option value="合适">合适</option>
+        <option value="粗心">粗心</option>
+        <option value="左右">左右</option>
+      </select>
+      的教育方式。
+      <div class="fb" style="display:block;margin-top:12px;">选对会变绿色，选错会变红色</div>
+    </div>
+  </section>
+
+  <section class="panel" id="p4">
+    <div class="panel-label">活动 4</div>
+    <h2>性格 × 教育方法配对表</h2>
+    <div class="hint">demo 用下拉选单模拟"拖拽配对"，正式版可做成真正的拖放</div>
+
+    <div class="card">
+      <table class="match">
+        <tr>
+          <td class="trait">孩子比较骄傲</td>
+          <td>
+            <select class="method" data-answer="a">
+              <option value="">（选择方法）</option>
+              <option value="a">让他明白还有很多知识需要学习</option>
+              <option value="b">经常鼓励他说出自己的看法</option>
+              <option value="c">不要用"懒""笨""粗心"批评他，多鼓励</option>
+              <option value="d">想办法引起他们的兴趣，让内容变有趣</option>
+              <option value="e">先了解原因，不要马上说他懒</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="trait">孩子性格害羞</td>
+          <td>
+            <select class="method" data-answer="b">
+              <option value="">（选择方法）</option>
+              <option value="a">让他明白还有很多知识需要学习</option>
+              <option value="b">经常鼓励他说出自己的看法</option>
+              <option value="c">不要用"懒""笨""粗心"批评他，多鼓励</option>
+              <option value="d">想办法引起他们的兴趣，让内容变有趣</option>
+              <option value="e">先了解原因，不要马上说他懒</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="trait">孩子写错题，不敢再写</td>
+          <td>
+            <select class="method" data-answer="c">
+              <option value="">（选择方法）</option>
+              <option value="a">让他明白还有很多知识需要学习</option>
+              <option value="b">经常鼓励他说出自己的看法</option>
+              <option value="c">不要用"懒""笨""粗心"批评他，多鼓励</option>
+              <option value="d">想办法引起他们的兴趣，让内容变有趣</option>
+              <option value="e">先了解原因，不要马上说他懒</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="trait">七岁左右的孩子坐不住</td>
+          <td>
+            <select class="method" data-answer="d">
+              <option value="">（选择方法）</option>
+              <option value="a">让他明白还有很多知识需要学习</option>
+              <option value="b">经常鼓励他说出自己的看法</option>
+              <option value="c">不要用"懒""笨""粗心"批评他，多鼓励</option>
+              <option value="d">想办法引起他们的兴趣，让内容变有趣</option>
+              <option value="e">先了解原因，不要马上说他懒</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="trait">孩子不想做作业，好像很懒</td>
+          <td>
+            <select class="method" data-answer="e">
+              <option value="">（选择方法）</option>
+              <option value="a">让他明白还有很多知识需要学习</option>
+              <option value="b">经常鼓励他说出自己的看法</option>
+              <option value="c">不要用"懒""笨""粗心"批评他，多鼓励</option>
+              <option value="d">想办法引起他们的兴趣，让内容变有趣</option>
+              <option value="e">先了解原因，不要马上说他懒</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="p6">
+    <div class="panel-label">活动 6</div>
+    <h2>情境闪卡 — 从情境猜词</h2>
+    <div class="hint">点卡片翻面看答案</div>
+
+    <div class="flash-row" id="flashList"></div>
+  </section>
+
+</main>
+
+<script>
+const flashData = [
+  {clue:"孩子不是不小心，是「专门这样做」的，这是哪个词？",word:"故意",pinyin:"gùyì",ex:"他故意把玩具扔在地上。"},
+  {clue:"用手或工具打、拍某个东西发出声音，这是哪个词？",word:"敲",pinyin:"qiāo",ex:"故意敲打来引起父母的注意。"},
+  {clue:"把乱的东西弄整齐、收拾好，这是哪个词？",word:"整理",pinyin:"zhěnglǐ",ex:"陪孩子整理整理东西。"},
+  {clue:"刚刚好、很适合的意思，这是哪个词？",word:"合适",pinyin:"héshì",ex:"应该选择合适的教育方法。"},
+  {clue:"用假话让别人相信不是真的事，这是哪个词？",word:"骗",pinyin:"piàn",ex:"最好不要为了解决问题而骗孩子。"},
+  {clue:"指还没有长大的小孩子，这是哪个词？",word:"儿童",pinyin:"értóng",ex:"儿童缺少判断能力。"},
+  {clue:"跟「真」相反，不是真的，这是哪个词？",word:"假",pinyin:"jiǎ",ex:"他们也会学着说假话。"},
+  {clue:"表示大概的数字，比如「三岁___」，这是哪个词？",word:"左右",pinyin:"zuǒyòu",ex:"七岁左右的儿童普遍好动。"},
+  {clue:"不想做事、不喜欢动，这是哪个词？",word:"懒",pinyin:"lǎn",ex:"不要用「懒」这种词批评他。"},
+  {clue:"学得比较慢、不聪明的意思，课文说不要用这个词批评孩子，这是哪个词？",word:"笨",pinyin:"bèn",ex:"不要用「笨」这种词批评他。"},
+  {clue:"做事不仔细、容易出错，这是哪个词？",word:"粗心",pinyin:"cūxīn",ex:"不要用「粗心」这种词批评他。"},
+  {clue:"觉得自己什么都懂、看不起别人，这是哪个词？",word:"骄傲",pinyin:"jiāo'ào",ex:"如果孩子比较骄傲，应该让他明白还有很多知识需要学习。"},
+  {clue:"不好意思在别人面前说话或表现，这是哪个词？",word:"害羞",pinyin:"hàixiū",ex:"要经常鼓励他说出自己的看法。"}
+];
+
+const flashListEl = document.getElementById('flashList');
+flashData.forEach(f=>{
+  const card = document.createElement('div');
+  card.className = 'flashcard';
+  card.innerHTML = `
+    <div class="flash-inner">
+      <div class="flash-face flash-front">${f.clue}</div>
+      <div class="flash-face flash-back">
+        <div class="word">${f.word}</div>
+        <div class="pinyin">${f.pinyin}</div>
+        <div class="ex">${f.ex}</div>
+      </div>
+    </div>
+  `;
+  flashListEl.appendChild(card);
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.card').forEach(card=>{
+  const opts=card.querySelectorAll('.opt');
+  if(opts.length){
+    opts.forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        if(card.dataset.answered)return;
+        card.dataset.answered='1';
+        opts.forEach(o=>{
+          o.classList.add(o.dataset.correct==='true'?'correct':'wrong');
+        });
+        const fb=card.querySelector('.fb');
+        fb.style.display='block';
+        fb.textContent = opt.dataset.correct==='true' ? '对，这是课文建议的做法。' : '再看看课文怎么说 — 正确答案已标绿。';
+      });
+    });
+  }
+});
+
+document.querySelectorAll('.dialogue-line').forEach(line=>{
+  line.addEventListener('click',()=>line.classList.toggle('flagged'));
+});
+
+document.querySelectorAll('select.blank').forEach(sel=>{
+  sel.addEventListener('change',()=>{
+    sel.classList.remove('right','wrong');
+    if(!sel.value)return;
+    sel.classList.add(sel.value===sel.dataset.answer?'right':'wrong');
+  });
+});
+
+document.querySelectorAll('select.method').forEach(sel=>{
+  sel.addEventListener('change',()=>{
+    sel.classList.remove('right','wrong');
+    if(!sel.value)return;
+    sel.classList.add(sel.value===sel.dataset.answer?'right':'wrong');
+  });
+});
+
+document.querySelectorAll('.flashcard').forEach(card=>{
+  card.addEventListener('click',()=>card.classList.toggle('flipped'));
+});
+</script>
+
+</body>
+</html>
